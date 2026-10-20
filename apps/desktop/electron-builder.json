@@ -1,0 +1,17 @@
+{
+  "appId": "studio.frameforge.app",
+  "productName": "FrameForge Studio",
+  "directories": { "output": "release" },
+  "files": ["dist/**/*", "package.json"],
+  "asarUnpack": ["node_modules/playwright-core/**"],
+  "extraResources": [{ "from": "resources/bin", "to": "bin", "filter": ["**/*"] }],
+  "win": { "target": ["nsis", "zip"], "artifactName": "FrameForge-Studio-${version}-win-${arch}.${ext}" },
+  "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true },
+  "mac": {
+    "target": ["dmg", "zip"],
+    "category": "public.app-category.video",
+    "artifactName": "FrameForge-Studio-${version}-mac-${arch}.${ext}",
+    "hardenedRuntime": true
+  },
+  "linux": { "target": ["AppImage"], "category": "AudioVideo" }
+}

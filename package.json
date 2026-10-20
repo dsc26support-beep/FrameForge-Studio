@@ -1,0 +1,51 @@
+{
+  "name": "frameforge-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FrameForge Studio - local-first HTML-to-MP4 video studio",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "templates"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @frameforge/web",
+    "build": "npm run build -w @frameforge/web",
+    "build:cli": "node scripts/build-node.mjs",
+    "build:desktop": "node scripts/build-node.mjs && npm run build -w @frameforge/web && node scripts/build-desktop.mjs",
+    "package:desktop": "npm run build:desktop && npm run package -w @frameforge/desktop",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit tests/security",
+    "test:integration": "vitest run tests/integration tests/rendering",
+    "test:e2e": "playwright test",
+    "check": "node scripts/check-install.mjs",
+    "scan:secrets": "node scripts/scan-secrets.mjs",
+    "audit": "npm audit --omit=dev --audit-level=high",
+    "ci": "npm run format:check && npm run lint && npm run typecheck && npm run scan:secrets && npm test && npm run build"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "5.0.5",
+    "eslint": "9.39.0",
+    "typescript-eslint": "8.72.0",
+    "prettier": "3.9.10",
+    "@playwright/test": "1.64.1",
+    "@types/node": "22.19.0",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "esbuild": "0.28.2",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-jsx-a11y": "6.10.2",
+    "@eslint/js": "9.39.0",
+    "globals": "16.0.0"
+  }
+}

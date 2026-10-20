@@ -1,0 +1,9 @@
+node_modules
+dist
+release
+coverage
+package-lock.json
+apps-script
+playwright-report
+test-results
+.handoff
