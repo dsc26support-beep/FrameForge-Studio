@@ -6,3 +6,4 @@ package-lock.json
 apps-script
 playwright-report
 test-results
+.handoff
