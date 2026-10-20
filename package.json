@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "FrameForge Studio - local-first HTML-to-MP4 video studio",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "type": "module",
   "engines": {
     "node": ">=22.18"
@@ -29,7 +29,7 @@
     "test:e2e": "playwright test",
     "check": "node scripts/check-install.mjs",
     "scan:secrets": "node scripts/scan-secrets.mjs",
-    "audit": "npm audit --audit-level=high",
+    "audit": "npm audit --omit=dev --audit-level=high",
     "ci": "npm run format:check && npm run lint && npm run typecheck && npm run scan:secrets && npm test && npm run build"
   },
   "devDependencies": {

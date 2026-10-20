@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Format, lint, types, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install FFmpeg and virtual display
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg xvfb
+      - run: npm ci
+      - name: Install Chromium for rendering tests
+        run: npx playwright install --with-deps chromium
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run scan:secrets
+      - name: Unit, security, integration and rendering tests
+        run: npm test
+      - name: Production build
+        run: npm run build
+      - name: Desktop bundle
+        run: npm run build:desktop
+      - name: End-to-end tests (browser viewports + Electron)
+        run: xvfb-run -a npm run test:e2e
+      - name: Upload test artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            test-results
+            playwright-report
+          if-no-files-found: ignore
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: apps/web/dist
+
+  desktop-build:
+    name: Desktop package check (${{ matrix.os }})
+    needs: verify
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build:desktop
+      - name: Package (unpacked, unsigned) to verify electron-builder config
+        working-directory: apps/desktop
+        run: npx electron-builder --dir --config electron-builder.json
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+  security:
+    name: Dependency security
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Production dependencies must have no high/critical advisories
+        run: npm audit --omit=dev --audit-level=high
+      - name: Full audit (informational; dev-only packaging tools are documented in SECURITY.md)
+        run: npm audit || true
+      - name: Dependency review (PRs)
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4

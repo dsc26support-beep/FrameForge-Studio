@@ -3,6 +3,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
+import { chromium as playwrightChromium } from 'playwright-core';
 
 const execFileP = promisify(execFile);
 
@@ -35,7 +36,12 @@ async function tryRun(bin: string, args: string[]): Promise<string | null> {
 function candidates(name: 'ffmpeg' | 'ffprobe', explicit?: string): string[] {
   const exe = process.platform === 'win32' ? `${name}.exe` : name;
   const bundled = (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath;
-  const list = [explicit, bundled ? path.join(bundled, 'bin', exe) : undefined, process.env[name === 'ffmpeg' ? 'FRAMEFORGE_FFMPEG' : 'FRAMEFORGE_FFPROBE'], exe];
+  const list = [
+    explicit,
+    bundled ? path.join(bundled, 'bin', exe) : undefined,
+    process.env[name === 'ffmpeg' ? 'FRAMEFORGE_FFMPEG' : 'FRAMEFORGE_FFPROBE'],
+    exe,
+  ];
   if (process.platform === 'darwin') list.push(`/opt/homebrew/bin/${name}`, `/usr/local/bin/${name}`);
   return list.filter((x): x is string => typeof x === 'string' && x.length > 0);
 }
@@ -43,6 +49,13 @@ function candidates(name: 'ffmpeg' | 'ffprobe', explicit?: string): string[] {
 export function findChromium(explicit?: string): string | null {
   const fromEnv = [explicit, process.env.FRAMEFORGE_CHROMIUM].filter((x): x is string => !!x);
   for (const p of fromEnv) if (existsSync(p)) return p;
+  try {
+    // Authoritative location of the browser installed by `npx playwright install chromium`.
+    const managed = playwrightChromium.executablePath();
+    if (managed && existsSync(managed)) return managed;
+  } catch {
+    /* not installed */
+  }
   const roots = [
     process.env.PLAYWRIGHT_BROWSERS_PATH,
     path.join(os.homedir(), '.cache', 'ms-playwright'),
@@ -55,6 +68,7 @@ export function findChromium(explicit?: string): string | null {
       for (const d of dirs) {
         const options = [
           path.join(root, d, 'chrome-linux', 'chrome'),
+          path.join(root, d, 'chrome-linux64', 'chrome'),
           path.join(root, d, 'chrome-linux', 'headless_shell'),
           path.join(root, d, 'chrome-win', 'chrome.exe'),
           path.join(root, d, 'chrome-mac', 'Chromium.app', 'Contents', 'MacOS', 'Chromium'),
