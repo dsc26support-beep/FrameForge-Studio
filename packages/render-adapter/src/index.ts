@@ -4,3 +4,5 @@ export * from './tools';
 export * from './ffmpeg';
 export * from './probe';
 export * from './render';
+export * from './queue';
+export * from './job';

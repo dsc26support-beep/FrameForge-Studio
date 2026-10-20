@@ -34,7 +34,8 @@ async function tryRun(bin: string, args: string[]): Promise<string | null> {
 
 function candidates(name: 'ffmpeg' | 'ffprobe', explicit?: string): string[] {
   const exe = process.platform === 'win32' ? `${name}.exe` : name;
-  const list = [explicit, process.env[name === 'ffmpeg' ? 'FRAMEFORGE_FFMPEG' : 'FRAMEFORGE_FFPROBE'], exe];
+  const bundled = (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath;
+  const list = [explicit, bundled ? path.join(bundled, 'bin', exe) : undefined, process.env[name === 'ffmpeg' ? 'FRAMEFORGE_FFMPEG' : 'FRAMEFORGE_FFPROBE'], exe];
   if (process.platform === 'darwin') list.push(`/opt/homebrew/bin/${name}`, `/usr/local/bin/${name}`);
   return list.filter((x): x is string => typeof x === 'string' && x.length > 0);
 }

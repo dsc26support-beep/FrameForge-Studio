@@ -99,6 +99,8 @@ export function sanitizeCss(css: string, warnings: string[] = []): string {
     warnings.push('External or unsupported url() reference removed from CSS.');
     return 'none';
   });
+  // Leftover absolute URLs (e.g. from broken escapes) are never meaningful in scene CSS.
+  out = out.replace(/(?:https?:)?\/\/[^\s;)}'"]+/gi, '');
   return out.trim();
 }
 
