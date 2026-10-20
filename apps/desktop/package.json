@@ -1,0 +1,20 @@
+{
+  "name": "@frameforge/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/main.cjs",
+  "description": "FrameForge Studio desktop shell",
+  "scripts": {
+    "package": "electron-builder --config electron-builder.json"
+  },
+  "dependencies": {
+    "@frameforge/project-schema": "*",
+    "@frameforge/render-adapter": "*",
+    "@frameforge/asset-manager": "*"
+  },
+  "devDependencies": {
+    "electron": "44.9.1",
+    "electron-builder": "26.15.3"
+  }
+}
