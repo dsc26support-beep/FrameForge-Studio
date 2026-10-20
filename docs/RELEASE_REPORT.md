@@ -19,7 +19,7 @@ Everything below is based on commands actually run in the authoring environment 
 
 ## Definition-of-done status
 
-1 frontend builds ✅ · 2 opens without fatal error ✅ (e2e, no console errors) · 3 schema validated ✅ · 4 create/edit/save/reopen ✅ · 5 animated HTML scene renders ✅ · 6 playable MP4 ✅ · 7 audio ✅ · 8 clear renderer errors ✅ · 9 failed render cannot corrupt project ✅ (renderer never writes project data) · 10 mobile + desktop viewports ✅ (emulated only) · 11 cloud optional ✅ · 12 Electron security verified ✅ (tests above) · 13 basic security tests ✅ · 14 CI configured ✅ (**not yet observed running on GitHub when this report was written**) · 15 install/troubleshooting docs ✅ · 16 limitations documented ✅ · 17 no committed secrets ✅ (scanner clean; also enable GitHub secret scanning) · 18 no knowingly nonfunctional essential button ✅ (see "Partial" for things that are absent rather than fake).
+1 frontend builds ✅ · 2 opens without fatal error ✅ (e2e, no console errors) · 3 schema validated ✅ · 4 create/edit/save/reopen ✅ · 5 animated HTML scene renders ✅ · 6 playable MP4 ✅ · 7 audio ✅ · 8 clear renderer errors ✅ · 9 failed render cannot corrupt project ✅ (renderer never writes project data) · 10 mobile + desktop viewports ✅ (emulated only) · 11 cloud optional ✅ · 12 Electron security verified ✅ (tests above) · 13 basic security tests ✅ · 14 CI configured ✅ (**observed green on GitHub for commit cc7dd4a: verify job incl. tests + browser e2e + Electron e2e on Ubuntu, Dependency security, and unsigned `electron-builder --dir` packaging on windows-latest and macos-latest**; the packaged apps were not launched on those OSes) · 15 install/troubleshooting docs ✅ · 16 limitations documented ✅ · 17 no committed secrets ✅ (scanner clean; also enable GitHub secret scanning) · 18 no knowingly nonfunctional essential button ✅ (see "Partial" for things that are absent rather than fake).
 
 ## Completed
 
@@ -29,7 +29,7 @@ Versioned schema + migration + recovery; scene compiler with deterministic seek;
 
 - **Scene render caching:** cache _keys_ (`sceneCacheKey`) with invalidation tests exist, but cached scene segments are not produced or reused yet.
 - **Low-resource mode:** detection, lighter preview hint, one render at a time (queue + Electron guard), render-scale and CRF controls, and a heavy-export warning exist. Preview quality only changes image smoothing, not compute; no parallel capture workers exist to limit.
-- **Desktop packaging:** configured for Windows (NSIS/zip) and macOS (dmg/zip); CI package-check jobs defined; no installer was built or run on those OSes by the author. Unsigned.
+- **Desktop packaging:** configured for Windows (NSIS/zip) and macOS (dmg/zip); CI package-check jobs pass on windows-latest and macos-latest (unpacked, unsigned); no installer was launched on those OSes. Pages deployment not yet run (needs merge + Pages enabled).
 - **Cloud:** backend + client done and tested with fakes; UI sign-in (Google Identity Services) not wired; not run against real Apps Script.
 - **Compatibility:** only Chromium exercised; Firefox/Safari/real phones untested.
 - **Dependency audit:** production clean; dev packaging chain has moderate advisories awaiting upstream fixes.
