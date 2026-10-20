@@ -99,6 +99,9 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
       - name: Full audit (informational; dev-only packaging tools are documented in SECURITY.md)
         run: npm audit || true
+      # Requires the repository's Dependency graph setting (Settings > Security > Code security).
+      # Non-blocking until that is enabled; then remove continue-on-error.
       - name: Dependency review (PRs)
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         uses: actions/dependency-review-action@v4
