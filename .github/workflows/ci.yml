@@ -28,6 +28,8 @@ jobs:
       - name: Install FFmpeg and virtual display
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg xvfb
       - run: npm ci
+      - name: Allow Chromium's sandbox on Ubuntu 24 runners (keeps the sandbox enabled)
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - name: Install Chromium for rendering tests
         run: npx playwright install --with-deps chromium
       - run: npm run format:check

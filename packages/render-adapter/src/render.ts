@@ -231,25 +231,39 @@ export async function renderProject(opts: RenderOptions): Promise<RenderResult> 
       stdinError = e;
     });
 
-    const noSandbox = opts.noSandbox ?? (typeof process.getuid === 'function' && process.getuid() === 0);
+    const noSandbox =
+      opts.noSandbox ?? (process.env.FRAMEFORGE_NO_SANDBOX === '1' || (typeof process.getuid === 'function' && process.getuid() === 0));
     if (noSandbox)
-      warnings.push('Chromium sandbox is disabled because the renderer runs as root. Only render projects you trust in this environment.');
-    browser = await chromium.launch({
-      executablePath: tools.chromium,
-      headless: true,
-      chromiumSandbox: !noSandbox,
-      args: [
-        '--hide-scrollbars',
-        '--force-color-profile=srgb',
-        '--disable-extensions',
-        '--disable-background-networking',
-        '--disable-sync',
-        '--no-first-run',
-        '--mute-audio',
-        '--disable-dev-shm-usage',
-        '--font-render-hinting=none',
-      ],
-    });
+      warnings.push(
+        'Chromium sandbox is disabled (running as root or FRAMEFORGE_NO_SANDBOX=1). Only render projects you trust in this environment.',
+      );
+    browser = await chromium
+      .launch({
+        executablePath: tools.chromium,
+        headless: true,
+        chromiumSandbox: !noSandbox,
+        args: [
+          '--hide-scrollbars',
+          '--force-color-profile=srgb',
+          '--disable-extensions',
+          '--disable-background-networking',
+          '--disable-sync',
+          '--no-first-run',
+          '--mute-audio',
+          '--disable-dev-shm-usage',
+          '--font-render-hinting=none',
+        ],
+      })
+      .catch((e: Error) => {
+        const sandbox = /sandbox/i.test(e.message);
+        throw new RenderError(
+          'CHROMIUM_MISSING',
+          sandbox
+            ? "Chromium's sandbox could not start (common on Linux when unprivileged user namespaces are restricted). Allow them (e.g. sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0) or, only for projects you trust, set FRAMEFORGE_NO_SANDBOX=1."
+            : 'Chromium could not be started.',
+          e.message.slice(0, 600),
+        );
+      });
     throwIfCancelled();
     const context = await browser.newContext({
       viewport: { width: project.canvas.width, height: project.canvas.height },

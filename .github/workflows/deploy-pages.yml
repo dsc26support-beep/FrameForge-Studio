@@ -27,6 +27,7 @@ jobs:
           cache: npm
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg xvfb
       - run: npm ci
+      - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - run: npx playwright install --with-deps chromium
       - run: npm run format:check && npm run lint && npm run typecheck && npm run scan:secrets
       - run: npm test
