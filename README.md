@@ -142,15 +142,16 @@ Disabled by default. See [docs/APPS_SCRIPT.md](docs/APPS_SCRIPT.md) for deployme
 
 ## Troubleshooting
 
-| Symptom                                        | Fix                                                                                                |
-| ---------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `FFmpeg was not found`                         | Install FFmpeg (commands above), reopen the terminal, or set `FRAMEFORGE_FFMPEG` to the full path. |
-| `No Chromium/Chrome/Edge found`                | Install Chrome/Edge/Chromium or set `FRAMEFORGE_CHROMIUM`.                                         |
-| `Chromium sandbox is disabled` warning         | You are running as root (containers). Render only projects you trust, or run as a normal user.     |
-| Export says it cannot render locally (browser) | By design. Download the archive and open it in the desktop app / CLI.                              |
-| Project is "damaged"                           | Open it: FrameForge offers a repaired copy or an automatic backup.                                 |
-| Storage unavailable (private mode)             | Use a normal window; you can still import/export archives.                                         |
-| `npm ci` fails on Electron download            | Set `ELECTRON_SKIP_BINARY_DOWNLOAD=1` for web/CLI-only work.                                       |
+| Symptom                                        | Fix                                                                                                                                                                                 |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FFmpeg was not found`                         | Install FFmpeg (commands above), reopen the terminal, or set `FRAMEFORGE_FFMPEG` to the full path.                                                                                  |
+| `No Chromium/Chrome/Edge found`                | Install Chrome/Edge/Chromium or set `FRAMEFORGE_CHROMIUM`.                                                                                                                          |
+| `Chromium's sandbox could not start`           | Linux with restricted user namespaces (Ubuntu 23.10+): `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`, or for trusted projects only set `FRAMEFORGE_NO_SANDBOX=1`. |
+| `Chromium sandbox is disabled` warning         | You are running as root (containers). Render only projects you trust, or run as a normal user.                                                                                      |
+| Export says it cannot render locally (browser) | By design. Download the archive and open it in the desktop app / CLI.                                                                                                               |
+| Project is "damaged"                           | Open it: FrameForge offers a repaired copy or an automatic backup.                                                                                                                  |
+| Storage unavailable (private mode)             | Use a normal window; you can still import/export archives.                                                                                                                          |
+| `npm ci` fails on Electron download            | Set `ELECTRON_SKIP_BINARY_DOWNLOAD=1` for web/CLI-only work.                                                                                                                        |
 
 ## Update / uninstall
 
