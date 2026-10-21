@@ -169,4 +169,4 @@ See [SECURITY.md](SECURITY.md) and [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). License: [MIT](LICENSE) (default chosen by the author of this scaffold; change it if you prefer another).
+See [CONTRIBUTING.md](CONTRIBUTING.md). General guidelines for users, content and contributors: [docs/GUIDELINES.md](docs/GUIDELINES.md). License: [MIT](LICENSE) (default chosen by the author of this scaffold; change it if you prefer another).
