@@ -216,3 +216,37 @@ describe('local MP4 rendering (requires ffmpeg + chromium)', () => {
     expect(res.warnings.join('\n')).toMatch(/not supported|removed/);
   });
 });
+
+describe('captions in rendered video', () => {
+  run('burns visible captions into the frames (and not when disabled)', async () => {
+    const withCaps = smallProject();
+    withCaps.canvas = { width: 320, height: 180 };
+    withCaps.captions = {
+      enabled: true,
+      position: 'bottom',
+      fontSize: 8,
+      color: '#ffffff',
+      background: '#000000cc',
+      items: [{ id: 'cap_1', startMs: 0, endMs: 1500, text: 'HELLO CAPTION' }],
+    };
+    const off = structuredClone(withCaps);
+    off.captions.enabled = false;
+    const a = path.join(dir, 'cap-on.mp4');
+    const b = path.join(dir, 'cap-off.mp4');
+    await renderProject({ project: withCaps, assetPaths: new Map(), outputPath: a, maxFrames: 12 });
+    await renderProject({ project: off, assetPaths: new Map(), outputPath: b, maxFrames: 12 });
+    const frame = (f: string) =>
+      execFileSync('ffmpeg', ['-loglevel', 'error', '-ss', '0.3', '-i', f, '-frames:v', '1', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], {
+        maxBuffer: 10_000_000,
+      });
+    const fa = frame(a);
+    const fb = frame(b);
+    expect(fa.length).toBe(fb.length);
+    // The bottom strip (where captions sit) must differ between the two renders.
+    const rowBytes = 320 * 3;
+    const bottom = (buf: Buffer) => buf.subarray(buf.length - rowBytes * 60);
+    expect(Buffer.compare(bottom(fa), bottom(fb))).not.toBe(0);
+    // The top strip must be identical (captions did not disturb the rest of the frame).
+    expect(Buffer.compare(fa.subarray(0, rowBytes * 40), fb.subarray(0, rowBytes * 40))).toBe(0);
+  });
+});

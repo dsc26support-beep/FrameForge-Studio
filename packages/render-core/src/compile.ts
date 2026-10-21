@@ -173,8 +173,13 @@ export function compileProjectHtml(project: Project, opts: CompileOptions): Comp
   const sections = project.scenes.map((s) => sceneHtml(s, W, H, opts, missing, warnings)).join('\n');
 
   const cap = project.captions;
-  const capPos = cap.position === 'top' ? 'top:6%' : cap.position === 'center' ? 'top:50%;transform:translateY(-50%)' : 'bottom:7%';
-  const captionsHtml = `<div id="ff-captions" style="display:none;position:absolute;left:8%;right:8%;${capPos};text-align:center;font:600 ${num((cap.fontSize / 100) * Math.min(W, H))}px/1.25 ${FONT_STACKS[project.brand.fontFamily]};color:${cap.color};z-index:9999"></div>`;
+  const capPos =
+    cap.position === 'top'
+      ? 'top:6%;transform:translateX(-50%)'
+      : cap.position === 'center'
+        ? 'top:50%;transform:translate(-50%,-50%)'
+        : 'bottom:7%;transform:translateX(-50%)';
+  const captionsHtml = `<div id="ff-captions" style="display:none;position:absolute;left:50%;${capPos};max-width:84%;width:max-content;box-sizing:border-box;padding:0.25em 0.6em;border-radius:0.3em;background:${cap.background};white-space:pre-line;text-align:center;font:600 ${num((cap.fontSize / 100) * Math.min(W, H))}px/1.25 ${FONT_STACKS[project.brand.fontFamily]};color:${cap.color};z-index:9999"></div>`;
 
   const data = {
     totalMs: timeline.totalMs,

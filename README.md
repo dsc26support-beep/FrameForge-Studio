@@ -118,6 +118,8 @@ See [docs/DESKTOP.md](docs/DESKTOP.md) for packaging, bundling FFmpeg, signing a
 - **Scenes / Edit panels:** add, duplicate, reorder scenes; add text, shapes and images; set position, scale, rotation, opacity; pick enter/exit animations, easing and transitions. Switch a scene to **Direct HTML/CSS** to write markup yourself (scripts are removed; animate with CSS `@keyframes`).
 - **Timeline:** scrub, play/pause, drag a scene's right edge (or use arrow keys on the handle) to change its length, undo/redo (Ctrl/Cmd+Z, Shift+Ctrl/Cmd+Z). Frame and time are shown live.
 - **Media:** import images, SVG, audio and video files. Files are identified by content, de-duplicated by SHA-256, and stored in IndexedDB (never inside the project JSON).
+- **Audio:** add imported audio as tracks; per track set volume (0–200%), start time, skip-into-clip, length, fade in/out and mute. Press Play to hear the mix while editing (the preview caps at 100% volume; the export applies the exact settings).
+- **Captions:** add captions at the playhead or import/export `.srt` files; edit text and timing, and set position, size, colour and background. Captions are drawn into the video; warnings flag overlaps, captions after the end, and captions switched off.
 - **Export:** 480p/720p/1080p, 16:9 / 9:16 / 1:1, 24–60 fps, quality (CRF), render scale. The default is 720p / 30 fps. On a desktop build you pick the file in a native dialog; in a browser you download the archive instead and the panel explains why.
 
 ### Browser storage warning

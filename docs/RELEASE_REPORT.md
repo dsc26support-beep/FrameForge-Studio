@@ -21,6 +21,10 @@ Everything below is based on commands actually run in the authoring environment 
 
 1 frontend builds ✅ · 2 opens without fatal error ✅ (e2e, no console errors) · 3 schema validated ✅ · 4 create/edit/save/reopen ✅ · 5 animated HTML scene renders ✅ · 6 playable MP4 ✅ · 7 audio ✅ · 8 clear renderer errors ✅ · 9 failed render cannot corrupt project ✅ (renderer never writes project data) · 10 mobile + desktop viewports ✅ (emulated only) · 11 cloud optional ✅ · 12 Electron security verified ✅ (tests above) · 13 basic security tests ✅ · 14 CI configured ✅ (**observed green on GitHub for commit cc7dd4a: verify job incl. tests + browser e2e + Electron e2e on Ubuntu, Dependency security, and unsigned `electron-builder --dir` packaging on windows-latest and macos-latest**; the packaged apps were not launched on those OSes) · 15 install/troubleshooting docs ✅ · 16 limitations documented ✅ · 17 no committed secrets ✅ (scanner clean; also enable GitHub secret scanning) · 18 no knowingly nonfunctional essential button ✅ (see "Partial" for things that are absent rather than fake).
 
+## Added after v0.1.0 (audio and captions editor)
+
+Audio panel (volume, start, trim, length, fades, mute, live preview sync), captions panel (add/edit/delete, `.srt` import/export, style, warnings), caption row on the timeline, caption background/line-break fix in the renderer, honest autosave status ("Saving…" immediately) plus a leave-page warning while a save is pending. Tests: 113 vitest (incl. a render proving captions are burned into frames) and 24 Playwright e2e.
+
 ## Completed
 
 Versioned schema + migration + recovery; scene compiler with deterministic seek; sanitizer; asset ingest with content sniffing and dedupe; `.ffproj` archives; render adapter, CLI (`--doctor`), render worker, job queue; editor (dashboard, scenes, elements, inspector, HTML mode with live warnings, timeline with pointer/touch/keyboard, undo/redo, media, export panel, settings, accessibility basics, reduced-motion separation); 8 templates; autosave with debounce + rolling backups + damaged-project recovery; Electron shell; Apps Script backend + validated client; CI and Pages workflows; docs.
@@ -36,7 +40,7 @@ Versioned schema + migration + recovery; scene compiler with deterministic seek;
 
 ## Not completed
 
-Drag/resize directly on the preview canvas; video clips inside scenes (importable only); AI storyboard/script features; batch generation and cloud sync UI; multi-track audio editing beyond add/trim/fade fields (no audio UI controls for fades yet: the schema and renderer support them); captions editor UI (schema + renderer support captions); HyperFrames adapter; FFmpeg bundling in installers; auto-update; Windows/macOS/mobile real-device testing; GitHub Pages deployment verification (requires enabling Pages in repository settings after merge).
+Drag/resize directly on the preview canvas; video clips inside scenes (importable only); AI storyboard/script features; batch generation and cloud sync UI; waveform display and per-track audio effects; HyperFrames adapter; FFmpeg bundling in installers; auto-update; Windows/macOS/mobile real-device testing; GitHub Pages deployment verification (requires enabling Pages in repository settings after merge).
 
 ## Blocked tests and how to run them
 
