@@ -23,14 +23,18 @@ export function useEditor(initial: Project) {
       dirty.current = true;
       return commit(h, next, coalesceKey);
     });
+    // Show the truth immediately: the edit is not on disk until the debounced save finishes.
+    setSave((s) => (s.kind === 'error' ? s : { kind: 'saving' }));
   }, []);
 
   const doUndo = useCallback(() => {
     dirty.current = true;
+    setSave({ kind: 'saving' });
     setHistory(undo);
   }, []);
   const doRedo = useCallback(() => {
     dirty.current = true;
+    setSave({ kind: 'saving' });
     setHistory(redo);
   }, []);
   const replace = useCallback((p: Project) => {
@@ -59,9 +63,18 @@ export function useEditor(initial: Project) {
 
   useEffect(() => {
     const onHide = () => void flush();
+    // Ask before leaving while an edit has not been written to storage yet.
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (dirty.current) {
+        void flush();
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
     window.addEventListener('pagehide', onHide);
     document.addEventListener('visibilitychange', onHide);
     return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload);
       window.removeEventListener('pagehide', onHide);
       document.removeEventListener('visibilitychange', onHide);
       void flush();

@@ -198,6 +198,20 @@ export function Timeline({
               </div>
             );
           })}
+          {project.captions.items.length > 0 && (
+            <div className="caption-row-track" aria-label="Captions on the timeline">
+              {project.captions.items.map((c) => (
+                <div
+                  key={c.id}
+                  className={`caption-block${project.captions.enabled ? '' : ' muted'}`}
+                  style={{ left: c.startMs * pxPerMs, width: Math.max(8, (c.endMs - c.startMs) * pxPerMs) }}
+                  title={c.text}
+                >
+                  {c.text}
+                </div>
+              ))}
+            </div>
+          )}
           <div className="playhead" style={{ left: timeMs * pxPerMs }} aria-hidden="true" />
         </div>
       </div>

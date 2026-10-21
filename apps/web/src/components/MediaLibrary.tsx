@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { ingestAsset } from '@frameforge/asset-manager';
 import { LIMITS, type Asset, type Project } from '@frameforge/project-schema';
-import { formatBytes, errorMessage, readFileBytes } from '../util';
+import { formatBytes, errorMessage, probeAudioDurationMs, readFileBytes } from '../util';
 import { assetStore } from '../storage/repo';
 
 interface Props {
@@ -34,9 +34,14 @@ export function MediaLibrary({ project, assetUrls, missing, onImported, onUseIma
           notes.push(`"${file.name}" is already in the library.`);
           continue;
         }
+        let stored = asset;
+        if (asset.kind === 'audio') {
+          const durationMs = await probeAudioDurationMs(bytes, asset.mime);
+          if (durationMs !== undefined) stored = { ...asset, durationMs };
+        }
         await assetStore.put(project.id, asset.id, bytes);
-        current = [...current, asset];
-        onImported(asset, bytes);
+        current = [...current, stored];
+        onImported(stored, bytes);
         notes.push(`Imported "${asset.name}".`);
       } catch (e) {
         setMessage({ kind: 'error', text: errorMessage(e) });

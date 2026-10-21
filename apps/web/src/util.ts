@@ -30,3 +30,22 @@ export async function readFileBytes(file: File, maxBytes: number): Promise<Uint8
 export function errorMessage(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
+
+/** Reads an audio file's length from its metadata. Resolves undefined if the browser cannot decode it. */
+export function probeAudioDurationMs(bytes: Uint8Array, mime: string): Promise<number | undefined> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: mime }));
+    const audio = new Audio();
+    const done = (v: number | undefined) => {
+      clearTimeout(timer);
+      audio.removeAttribute('src');
+      URL.revokeObjectURL(url);
+      resolve(v);
+    };
+    const timer = setTimeout(() => done(undefined), 5000);
+    audio.preload = 'metadata';
+    audio.onloadedmetadata = () => done(Number.isFinite(audio.duration) ? Math.round(audio.duration * 1000) : undefined);
+    audio.onerror = () => done(undefined);
+    audio.src = url;
+  });
+}

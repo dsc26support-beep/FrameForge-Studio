@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   addAudioTrack,
+  addCaption,
   addElement,
   addScene,
   applyExportSettings,
@@ -12,6 +13,12 @@ import {
   moveScene,
   registerAsset,
   removeAsset,
+  removeAudioTrack,
+  removeCaption,
+  replaceCaptions,
+  setCaptionStyle,
+  updateAudioTrack,
+  updateCaption,
   renameProject,
   setSceneDuration,
   updateElement,
@@ -19,15 +26,18 @@ import {
 } from '@frameforge/editor-core';
 import { createShapeElement, createTextElement, newId, type Asset, type Project, type SceneElement } from '@frameforge/project-schema';
 import { computeTimeline, type DeviceProfile } from '@frameforge/render-core';
+import { AudioPanel } from '../components/AudioPanel';
+import { CaptionsPanel } from '../components/CaptionsPanel';
 import { ExportPanel } from '../components/ExportPanel';
 import { Inspector } from '../components/Inspector';
 import { MediaLibrary } from '../components/MediaLibrary';
 import { Preview } from '../components/Preview';
 import { Timeline } from '../components/Timeline';
 import { assetStore } from '../storage/repo';
+import { useAudioPreview } from '../useAudioPreview';
 import { useEditor } from '../useEditor';
 
-type Tab = 'scenes' | 'edit' | 'media' | 'export';
+type Tab = 'scenes' | 'edit' | 'media' | 'audio' | 'captions' | 'export';
 
 interface Props {
   initial: Project;
@@ -78,6 +88,8 @@ export function Editor({ initial, profile, onBack }: Props) {
     };
   }, [project.assets, project.id]);
   useEffect(() => () => urlsRef.current.forEach((u) => URL.revokeObjectURL(u)), []);
+
+  useAudioPreview(project, assetUrls, timeMs, playing, timeline.totalMs);
 
   // Playback loop driven by rAF; the preview is seeked, never free-running, so it matches the renderer.
   useEffect(() => {
@@ -321,6 +333,37 @@ export function Editor({ initial, profile, onBack }: Props) {
       />
     </div>
   );
+  const seekTo = (ms: number) => {
+    setPlaying(false);
+    setTimeMs(ms);
+  };
+  const panelAudio = (
+    <div className="panel-body">
+      <AudioPanel
+        project={project}
+        totalMs={timeline.totalMs}
+        onAdd={(a) => apply((p) => addAudioTrack(p, a.id, a.name))}
+        onUpdate={(id, patch, key) => apply((p) => updateAudioTrack(p, id, patch), key ?? null)}
+        onRemove={(id) => apply((p) => removeAudioTrack(p, id))}
+        onGoToMedia={() => setTab('media')}
+      />
+    </div>
+  );
+  const panelCaptions = (
+    <div className="panel-body">
+      <CaptionsPanel
+        project={project}
+        timeMs={timeMs}
+        totalMs={timeline.totalMs}
+        onStyle={(patch, key) => apply((p) => setCaptionStyle(p, patch), key ?? null)}
+        onAdd={(s, e) => apply((p) => addCaption(p, s, e))}
+        onUpdate={(id, patch, key) => apply((p) => updateCaption(p, id, patch), key ?? null)}
+        onRemove={(id) => apply((p) => removeCaption(p, id))}
+        onReplace={(items) => apply((p) => replaceCaptions(p, items))}
+        onSeek={seekTo}
+      />
+    </div>
+  );
   const panelExport = (
     <div className="panel-body">
       <ExportPanel
@@ -336,6 +379,8 @@ export function Editor({ initial, profile, onBack }: Props) {
     ['scenes', 'Scenes'],
     ['edit', 'Edit'],
     ['media', 'Media'],
+    ['audio', 'Audio'],
+    ['captions', 'Captions'],
     ['export', 'Export'],
   ];
 
@@ -394,6 +439,8 @@ export function Editor({ initial, profile, onBack }: Props) {
           {tab === 'scenes' && panelScenes}
           {tab === 'edit' && panelEdit}
           {tab === 'media' && panelMedia}
+          {tab === 'audio' && panelAudio}
+          {tab === 'captions' && panelCaptions}
           {tab === 'export' && panelExport}
         </aside>
         <section className="stage" aria-label="Preview">

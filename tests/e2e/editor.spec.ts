@@ -81,3 +81,80 @@ test.describe('editor workflow', () => {
     await expect(page.getByRole('alert')).toContainText(/Unsupported/);
   });
 });
+
+function wavBuffer(seconds: number): Buffer {
+  const rate = 8000;
+  const n = rate * seconds;
+  const buf = Buffer.alloc(44 + n * 2);
+  buf.write('RIFF', 0);
+  buf.writeUInt32LE(36 + n * 2, 4);
+  buf.write('WAVEfmt ', 8);
+  buf.writeUInt32LE(16, 16);
+  buf.writeUInt16LE(1, 20);
+  buf.writeUInt16LE(1, 22);
+  buf.writeUInt32LE(rate, 24);
+  buf.writeUInt32LE(rate * 2, 28);
+  buf.writeUInt16LE(2, 32);
+  buf.writeUInt16LE(16, 34);
+  buf.write('data', 36);
+  buf.writeUInt32LE(n * 2, 40);
+  for (let i = 0; i < n; i++) buf.writeInt16LE(Math.round(Math.sin((i / rate) * 2 * Math.PI * 440) * 8000), 44 + i * 2);
+  return buf;
+}
+
+test.describe('audio and captions editor', () => {
+  test('adds an audio track, edits it, and adds captions that show in the preview', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+    await page.goto('/');
+    await page.getByRole('button', { name: /Blank project/ }).click();
+
+    // Import audio and add it as a track
+    await page.getByRole('tab', { name: 'Media' }).click();
+    await page.locator('input[type=file]').setInputFiles({ name: 'tone.wav', mimeType: 'audio/wav', buffer: wavBuffer(2) });
+    await expect(page.getByText('Imported "tone.wav".')).toBeVisible();
+    await page.getByRole('tab', { name: 'Audio' }).click();
+    await page.getByRole('button', { name: 'Add as track' }).click();
+    const track = page.getByRole('region', { name: 'Audio track tone.wav' });
+    await expect(track).toBeVisible();
+    await expect(track.getByText(/clip is 2 s/)).toBeVisible();
+    await track.getByLabel('Volume (%)', { exact: true }).fill('50');
+    await track.getByLabel('Fade in (seconds)', { exact: true }).fill('0.5');
+    await track.getByLabel('Mute this track').check();
+    await expect(track.getByLabel('Mute this track')).toBeChecked();
+    await expect(page.getByLabel('Audio track tone.wav', { exact: false }).first()).toBeVisible();
+
+    // Captions: add at the playhead, edit text, check the preview shows it
+    await page.getByRole('tab', { name: 'Captions' }).click();
+    await page.getByRole('button', { name: '+ Caption at playhead' }).click();
+    await page.getByRole('textbox', { name: 'Caption 1 text' }).fill('Hello captions');
+    const frame = page.frameLocator('iframe[title="Video preview"]');
+    await expect(frame.locator('#ff-captions')).toHaveText('Hello captions');
+    // Turning captions off hides them in the preview
+    await page.getByLabel('Show captions in the video').uncheck();
+    await expect(frame.locator('#ff-captions')).toBeHidden();
+    expect(errors, errors.join('\n')).toEqual([]);
+
+    // Saved and restored after reload (wait for the save to start, then finish)
+    await expect(page.getByText('Saving…')).toBeVisible();
+    await expect(page.getByText('Saved on this device')).toBeVisible();
+    await page.reload(); // the URL keeps the project open
+    await page.getByRole('tab', { name: 'Audio' }).click();
+    await expect(page.getByRole('region', { name: 'Audio track tone.wav' }).getByLabel('Mute this track')).toBeChecked();
+    await page.getByRole('tab', { name: 'Captions' }).click();
+    await expect(page.getByRole('textbox', { name: 'Caption 1 text' })).toHaveValue('Hello captions');
+  });
+
+  test('imports an .srt file', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: /Blank project/ }).click();
+    await page.getByRole('tab', { name: 'Captions' }).click();
+    await page.locator('input[type=file]').setInputFiles({
+      name: 'subs.srt',
+      mimeType: 'text/plain',
+      buffer: Buffer.from('1\n00:00:00,500 --> 00:00:01,500\nFirst\n\n2\n00:00:02,000 --> 00:00:02,800\nSecond\n'),
+    });
+    await expect(page.getByText('Imported 2 captions.')).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'Caption 2 text' })).toHaveValue('Second');
+  });
+});
