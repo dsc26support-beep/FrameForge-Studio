@@ -1,24 +1,23 @@
 # Handoff: FrameForge Studio (live)
 ## Goal
-Build HTML->MP4 video studio (web + Electron + CLI + optional Apps Script). Repo dsc26support-beep/FrameForge-Studio, branch claude/frameforge-studio-build-b9fgz6, draft PR #1 (subscribed).
+HTML->MP4 video studio (web + Electron + CLI + optional Apps Script). Repo dsc26support-beep/FrameForge-Studio.
 ## Next steps
-1. Read CI result for head f6eacf4 (PR #1); fix any red job (first real run of Playwright+Electron e2e on GitHub).
-2. If green: tell user; they must enable Pages (Settings>Pages>Actions), Dependency graph, secret scanning; merge PR.
-3. Remaining gaps (see docs/RELEASE_REPORT.md): canvas drag editing, audio-fade/caption UI, video clips in scenes, cached scene segments, cloud sign-in UI, real Win/mac/mobile testing.
+1. Check Pages deploy run (workflow_dispatch run 39586117877 on main): if green, get site URL from run/Settings>Pages, load-check it, tell user. If red, read logs and fix.
+2. PR #2 (draft, CI: dependency review now blocking; branch claude/frameforge-studio-build-b9fgz6, subscribed): confirm CI green incl. dependency-review step; user marks ready + merges.
+3. Optional gaps (docs/RELEASE_REPORT.md): canvas drag edit, audio-fade/caption UI, video clips in scenes, cached scene segments, cloud sign-in UI, real Win/mac/mobile tests.
 ## State
-- Local `npm run ci` green: 105 vitest, 12 browser e2e, 6 Electron e2e (xvfb), real MP4 renders verified.
-- Packages: project-schema, render-core, asset-manager, render-adapter, editor-core, templates; apps/web, apps/desktop; apps-script/*.gs.
-- Docs written: README, SECURITY, CONTRIBUTING, docs/{ARCHITECTURE,THREAT_MODEL,APPS_SCRIPT,DESKTOP,IMPLEMENTATION_PLAN,RELEASE_REPORT}.md
+- PR #1 merged (squash d2f30d4); main CI green. User enabled Pages, Dependency graph, Secret scanning in GitHub UI.
+- First Pages deploy (before enabling) failed as expected; re-dispatched after.
+- Work branch was force-reset to origin/main (force-with-lease; only dropped handoff-note commits).
+- Picture guide artifact (private) made for user: https://claude.ai/artifact/TXEpTRsJhz4VfQ7NqL7Df1
 ## Decisions (why)
-- Own Playwright+FFmpeg renderer, not HyperFrames: smaller deps, no scene JS, one schema.
-- Motion = CSS animations seeked via Web Animations API => deterministic.
-- Chromium sandbox ON by default; opt-out only FRAMEFORGE_NO_SANDBOX=1 or root. CI uses sysctl apparmor_restrict_unprivileged_userns=0 (Ubuntu 24 runners).
-- dependency-review step continue-on-error (repo Dependency graph off; not fixable from code).
-- MIT license is a default choice; user may change.
+- Own Playwright+FFmpeg renderer (not HyperFrames): small deps, no scene JS, one schema.
+- Chromium sandbox on by default; CI sysctl apparmor_restrict_unprivileged_userns=0; FRAMEFORGE_NO_SANDBOX=1 opt-out.
+- .handoff excluded from Prettier (hook file broke format check).
+- MIT license default; user may change.
 ## Gotchas
-- RELEASE_REPORT says CI "not yet observed"; update once green.
-- npm audit: 8 moderate dev-only (electron-builder chain); prod 0.
-- Electron needs xvfb-run headless; build:desktop before e2e.
-- GitHub Pages terms not fetched (no network to docs.github.com).
+- Repo settings API blocked by sandbox proxy; user flips settings in UI. Do not bypass.
+- Pushes cancel in-flight CI (concurrency group).
+- Electron e2e needs build:desktop + xvfb-run.
 ## Open questions
-- User choice of license, hosting target (Pages vs other), signing for installers.
+- License, hosting target (Pages terms for commercial use unchecked), installer signing.
