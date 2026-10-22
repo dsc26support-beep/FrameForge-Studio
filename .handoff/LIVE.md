@@ -2,7 +2,7 @@
 ## Goal
 HTML->MP4 video studio (web + Electron + CLI + optional Apps Script) for OTHER PEOPLE (user confirmed). Repo dsc26support-beep/FrameForge-Studio.
 ## Next steps
-1. PR #4 (draft, "Add direct manipulation on the preview", branch claude/frameforge-studio-build-b9fgz6, subscribed): watch CI; fix reds; user says merge -> mark ready + squash merge with expectedHeadSha; then reset branch to origin/main.
+1. PR #4 ("Add direct manipulation on the preview", ready for review by user, subscribed): ALL CI GREEN on d5a9c4d (incl win/mac package checks). Waiting for user to say merge -> squash merge with expectedHeadSha; then reset branch to origin/main (force-with-lease).
 2. Then: real-device testing (user; touch drag only emulated), signed installers + auto-update (needs user certs), video clips in scenes, cached scene segments, cloud sign-in UI, edge-resize handles, in-app Guidelines page.
 ## State
 - main = PR #1-#3 merged (v0.1, dependency review blocking, audio+captions+GUIDELINES). Site live: https://dsc26support-beep.github.io/FrameForge-Studio/ (Pages deploy green).
@@ -15,6 +15,7 @@ HTML->MP4 video studio (web + Electron + CLI + optional Apps Script) for OTHER P
 - Chromium sandbox on; CI sysctl apparmor_restrict_unprivileged_userns=0; FRAMEFORGE_NO_SANDBOX=1 opt-out.
 - MIT license default; GUIDELINES.md policy part needs lawyer review.
 ## Gotchas
+- CI run was slow once (apt ffmpeg 21 min, chromium 8 min = runner mirror slowness, not code). Could cache installs if recurring.
 - Repo settings API blocked by sandbox proxy; github.io unreachable from sandbox.
 - Pushes cancel in-flight CI. Electron e2e needs build:desktop (default base) + xvfb-run.
 - After a PR merges: reset work branch to origin/main, push --force-with-lease.
