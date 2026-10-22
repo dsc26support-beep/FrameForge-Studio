@@ -26,6 +26,7 @@ import {
 } from '@frameforge/editor-core';
 import { createShapeElement, createTextElement, newId, type Asset, type Project, type SceneElement } from '@frameforge/project-schema';
 import { computeTimeline, type DeviceProfile } from '@frameforge/render-core';
+import { CanvasOverlay } from '../components/CanvasOverlay';
 import { AudioPanel } from '../components/AudioPanel';
 import { CaptionsPanel } from '../components/CaptionsPanel';
 import { ExportPanel } from '../components/ExportPanel';
@@ -444,7 +445,32 @@ export function Editor({ initial, profile, onBack }: Props) {
           {tab === 'export' && panelExport}
         </aside>
         <section className="stage" aria-label="Preview">
-          <Preview project={project} assetUrls={assetUrls} timeMs={timeMs} quality={profile.previewScale} onWarnings={setWarnings} />
+          <Preview
+            project={project}
+            assetUrls={assetUrls}
+            timeMs={timeMs}
+            quality={profile.previewScale}
+            onWarnings={setWarnings}
+            overlay={({ scale, rects }) =>
+              scene.mode === 'structured' && !playing ? (
+                <CanvasOverlay
+                  elements={scene.elements}
+                  canvas={project.canvas}
+                  scale={scale}
+                  rects={rects}
+                  selectedId={elementId}
+                  onSelect={setElementId}
+                  onChange={(id, patch, key) => apply((p) => updateElement(p, scene.id, id, patch), key)}
+                />
+              ) : null
+            }
+          />
+          {scene.mode === 'structured' && !playing && scene.elements.length > 0 && (
+            <p className="hint drag-hint">
+              Drag to move · corner square to scale · round handle to rotate (Shift: 15° steps) · arrow keys nudge · Alt: no snapping. Boxes
+              mark each element&apos;s final position.
+            </p>
+          )}
           {warnings.length > 0 && (
             <details className="preview-warnings">
               <summary>

@@ -497,16 +497,18 @@ input[type='range'] {
     padding: 12px;
   }
 }
-.preview-box {
-  width: 100%;
-  max-width: min(100%, 980px);
-  max-height: 52dvh;
-  margin: 0 auto;
+.preview-wrap {
   position: relative;
+  width: 100%;
+  margin: 0 auto;
+}
+.preview-box {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
   background: #000;
   border-radius: 8px;
-  border: 1px solid var(--border);
+  box-shadow: 0 0 0 1px var(--border);
 }
 .preview-box iframe {
   border: 0;
@@ -950,4 +952,120 @@ input[type='range'] {
 }
 .caption-block.muted {
   opacity: 0.45;
+}
+
+/* Direct manipulation overlay */
+.ov {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.ov-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+.ov-box {
+  position: absolute;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: move;
+  outline: 1px dashed transparent;
+  outline-offset: 1px;
+  box-sizing: border-box;
+}
+.ov-box:hover {
+  outline-color: color-mix(in srgb, var(--accent) 70%, #fff);
+}
+.ov-box.selected {
+  outline: 2px solid var(--accent);
+}
+.ov-box:focus-visible {
+  outline: 3px solid var(--focus);
+}
+.ov-h {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  background: #fff;
+  border: 2px solid var(--accent);
+  border-radius: 3px;
+  touch-action: none;
+  box-sizing: border-box;
+}
+.ov-h::after {
+  content: '';
+  position: absolute;
+  inset: -12px;
+}
+.ov-h.tl {
+  left: 0;
+  top: 0;
+  cursor: nwse-resize;
+}
+.ov-h.tr {
+  left: 100%;
+  top: 0;
+  cursor: nesw-resize;
+}
+.ov-h.bl {
+  left: 0;
+  top: 100%;
+  cursor: nesw-resize;
+}
+.ov-h.br {
+  left: 100%;
+  top: 100%;
+  cursor: nwse-resize;
+}
+.ov-h.rot {
+  left: 50%;
+  top: -30px;
+  border-radius: 50%;
+  cursor: grab;
+}
+.ov-stem {
+  position: absolute;
+  left: 50%;
+  top: -24px;
+  width: 2px;
+  height: 24px;
+  margin-left: -1px;
+  background: var(--accent);
+  pointer-events: none;
+}
+.ov-guide {
+  position: absolute;
+  background: #ff3d8b;
+  pointer-events: none;
+}
+.ov-guide.v {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+.ov-guide.h {
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+@media (pointer: coarse) {
+  .ov-h {
+    width: 22px;
+    height: 22px;
+    margin: -11px 0 0 -11px;
+  }
+  .ov-h.rot {
+    top: -38px;
+  }
+  .ov-stem {
+    top: -30px;
+    height: 30px;
+  }
+}
+.drag-hint {
+  margin: 0;
+  text-align: center;
 }
