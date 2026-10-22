@@ -25,6 +25,10 @@ Everything below is based on commands actually run in the authoring environment 
 
 Audio panel (volume, start, trim, length, fades, mute, live preview sync), captions panel (add/edit/delete, `.srt` import/export, style, warnings), caption row on the timeline, caption background/line-break fix in the renderer, honest autosave status ("Saving…" immediately) plus a leave-page warning while a save is pending. Tests: 113 vitest (incl. a render proving captions are burned into frames) and 24 Playwright e2e.
 
+## Added: dragging on the preview
+
+Select, move (with centre/edge snapping), scale (corner handles), rotate (round handle, Shift = 15° steps) and nudge (arrow keys) elements directly on the preview; element sizes are measured inside the sandboxed preview so boxes fit text exactly; the preview is now double-buffered (no blank flash while editing); fixed a blank preview when the playhead sat at the very end. Tests: 119 vitest, 39 Playwright e2e (incl. mouse drags, undo-as-one-step, keyboard nudge).
+
 ## Completed
 
 Versioned schema + migration + recovery; scene compiler with deterministic seek; sanitizer; asset ingest with content sniffing and dedupe; `.ffproj` archives; render adapter, CLI (`--doctor`), render worker, job queue; editor (dashboard, scenes, elements, inspector, HTML mode with live warnings, timeline with pointer/touch/keyboard, undo/redo, media, export panel, settings, accessibility basics, reduced-motion separation); 8 templates; autosave with debounce + rolling backups + damaged-project recovery; Electron shell; Apps Script backend + validated client; CI and Pages workflows; docs.
@@ -40,7 +44,7 @@ Versioned schema + migration + recovery; scene compiler with deterministic seek;
 
 ## Not completed
 
-Drag/resize directly on the preview canvas; video clips inside scenes (importable only); AI storyboard/script features; batch generation and cloud sync UI; waveform display and per-track audio effects; HyperFrames adapter; FFmpeg bundling in installers; auto-update; Windows/macOS/mobile real-device testing; GitHub Pages deployment verification (requires enabling Pages in repository settings after merge).
+Edge-resize handles and touch-screen drag testing on real devices (only emulated pointer events were tested); video clips inside scenes (importable only); AI storyboard/script features; batch generation and cloud sync UI; waveform display and per-track audio effects; HyperFrames adapter; FFmpeg bundling in installers; auto-update; Windows/macOS/mobile real-device testing.
 
 ## Blocked tests and how to run them
 

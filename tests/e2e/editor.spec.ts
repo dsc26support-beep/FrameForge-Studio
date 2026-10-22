@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 test.describe('editor workflow', () => {
   test('create, edit, preview, save and reopen a project', async ({ page }) => {
@@ -157,4 +157,99 @@ test.describe('audio and captions editor', () => {
     await expect(page.getByText('Imported 2 captions.')).toBeVisible();
     await expect(page.getByRole('textbox', { name: 'Caption 2 text' })).toHaveValue('Second');
   });
+});
+
+test.describe('direct manipulation on the preview', () => {
+  async function openWithText(page: Page) {
+    await page.goto('/');
+    await page.getByRole('button', { name: /Blank project/ }).click();
+    await page.getByRole('tab', { name: 'Scenes' }).click();
+    await page.getByRole('button', { name: '+ Text' }).click(); // selects the new element and opens the Edit panel
+    const box = page.locator('[data-el-box]').last();
+    await expect(box).toBeVisible();
+    await expect.poll(async () => (await box.boundingBox())?.width ?? 0).toBeGreaterThan(20);
+    return box;
+  }
+  const num = (page: Page, label: string) => page.getByLabel(label, { exact: true });
+
+  test('dragging moves the element, snaps to the centre, and is one undo step', async ({ page }) => {
+    const box = await openWithText(page);
+    await expect(num(page, 'X (centre) (%)')).toHaveValue('50');
+    const b = (await box.boundingBox())!;
+    const cx = b.x + b.width / 2;
+    const cy = b.y + b.height / 2;
+    await page.mouse.move(cx, cy);
+    await page.mouse.down();
+    await page.mouse.move(cx + 60, cy + 30, { steps: 8 });
+    await page.mouse.up();
+    const x = Number(await num(page, 'X (centre) (%)').inputValue());
+    const y = Number(await num(page, 'Y (centre) (%)').inputValue());
+    expect(x).toBeGreaterThan(52);
+    expect(y).toBeGreaterThan(52);
+    // One drag = one undo step
+    await page.getByRole('button', { name: 'Undo' }).click();
+    await expect(num(page, 'X (centre) (%)')).toHaveValue('50');
+    await expect(num(page, 'Y (centre) (%)')).toHaveValue('50');
+    // A tiny drag near the centre snaps back exactly to 50
+    const b2 = (await box.boundingBox())!;
+    await page.mouse.move(b2.x + b2.width / 2, b2.y + b2.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(b2.x + b2.width / 2 + 3, b2.y + b2.height / 2, { steps: 3 });
+    await page.mouse.up();
+    await expect(num(page, 'X (centre) (%)')).toHaveValue('50');
+  });
+
+  test('corner handle scales and the round handle rotates', async ({ page }) => {
+    const box = await openWithText(page);
+    await expect(num(page, 'Scale')).toHaveValue('1');
+    const b = (await box.boundingBox())!;
+    const cx = b.x + b.width / 2;
+    const cy = b.y + b.height / 2;
+    // Scale: drag the bottom-right handle further from the centre
+    const br = (await page.locator('.ov-h.br').boundingBox())!;
+    await page.mouse.move(br.x + br.width / 2, br.y + br.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(cx + (br.x + br.width / 2 - cx) * 1.6, cy + (br.y + br.height / 2 - cy) * 1.6, { steps: 8 });
+    await page.mouse.up();
+    expect(Number(await num(page, 'Scale').inputValue())).toBeGreaterThan(1.3);
+    // Rotate: drag the rotate handle to the right of the centre (90 degrees) with Shift for 15-degree steps
+    const rot = (await page.locator('.ov-h.rot').boundingBox())!;
+    await page.mouse.move(rot.x + rot.width / 2, rot.y + rot.height / 2);
+    await page.mouse.down();
+    await page.keyboard.down('Shift');
+    await page.mouse.move(cx + 200, cy, { steps: 10 });
+    await page.mouse.up();
+    await page.keyboard.up('Shift');
+    await expect(num(page, 'Rotation (°)')).toHaveValue('90');
+  });
+
+  test('keyboard nudges the selected element and Escape deselects', async ({ page }) => {
+    const box = await openWithText(page);
+    await box.focus();
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+    await expect(num(page, 'X (centre) (%)')).toHaveValue('51');
+    await page.keyboard.press('Shift+ArrowDown');
+    await expect(num(page, 'Y (centre) (%)')).toHaveValue('52');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.ov-h')).toHaveCount(0);
+  });
+
+  test('is hidden for HTML-mode scenes and while playing', async ({ page }) => {
+    await openWithText(page);
+    await expect(page.getByTestId('canvas-overlay')).toBeVisible();
+    await page.getByRole('button', { name: 'Play' }).click();
+    await expect(page.getByTestId('canvas-overlay')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Pause' }).click();
+    await expect(page.getByTestId('canvas-overlay')).toBeVisible();
+  });
+});
+
+test('preview shows the last scene when the playhead is at the very end', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /Quote video/ }).click();
+  await page.getByRole('slider', { name: 'Playhead' }).focus();
+  await page.keyboard.press('End');
+  const frame = page.frameLocator('iframe[title="Video preview"]');
+  await expect(frame.getByText('— Someone Wise')).toBeVisible();
 });

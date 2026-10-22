@@ -48,6 +48,10 @@ export const RUNTIME_SOURCE = `
   }
 
   function seek(t) {
+    // The very end of the timeline belongs to no scene; show the last visible instant instead of a blank frame.
+    var total = data.totalMs || 0;
+    if (t < 0) t = 0;
+    if (total > 0 && t >= total) t = total - 1;
     lastT = t;
     var info = data.scenes || [];
     for (var i = 0; i < scenes.length; i++) {
@@ -89,11 +93,28 @@ export const RUNTIME_SOURCE = `
     return Promise.all(imgs.concat([fonts])).then(function () { return true; });
   }
 
+  // Layout size (unaffected by transforms) of every element, for the editor's selection overlay.
+  function measure() {
+    var out = {};
+    for (var i = 0; i < scenes.length; i++) {
+      var sc = scenes[i];
+      var prevDisplay = sc.style.display, prevVis = sc.style.visibility;
+      sc.style.visibility = 'hidden';
+      sc.style.display = 'block';
+      var els = sc.querySelectorAll('.ff-el');
+      for (var j = 0; j < els.length; j++) out[els[j].getAttribute('data-el')] = [els[j].offsetWidth, els[j].offsetHeight];
+      sc.style.display = prevDisplay;
+      sc.style.visibility = prevVis;
+    }
+    return out;
+  }
+
   window.__ff = { seek: seek, ready: ready, totalMs: data.totalMs || 0 };
   window.addEventListener('message', function (e) {
     if (e.source !== window.parent && e.source !== window) return;
     var m = e.data;
     if (m && m.type === 'ff-seek' && typeof m.t === 'number' && isFinite(m.t)) seek(m.t);
+    else if (m && m.type === 'ff-measure' && e.source) e.source.postMessage({ type: 'ff-rects', rects: measure() }, '*');
   });
   seek(0);
   if (window.parent !== window) window.parent.postMessage({ type: 'ff-ready', totalMs: data.totalMs || 0 }, '*');
